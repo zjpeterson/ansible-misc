@@ -1,0 +1,54 @@
+---
+- name: Configure PostgreSQL pool
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    psql_db: postgres # database the user has permission to connect to
+    psql_db_user: bigip # user able to execute 'select pg_is_in_recovery();'
+    psql_db_password: bigip # password for user above
+    psql_pool: pool_pgsql # desired pool name
+    psql_nodes: # list of all postgres nodes
+      - 1.1.1.1
+      - 2.2.2.2
+
+  tasks:
+    - name: Create monitor
+      ansible.builtin.uri: # there is not yet a module for this https://github.com/F5Networks/f5-ansible/issues/1930
+        url: https://{{ lookup('env','F5_SERVER') }}/mgmt/tm/ltm/monitor/postgresql
+        method: POST
+        force_basic_auth: yes
+        url_username: "{{ lookup('env','F5_USER') }}"
+        url_password: "{{ lookup('env','F5_PASSWORD') }}"
+        validate_certs: "{{ lookup('env','F5_VALIDATE_CERTS') }}"
+        body_format: json
+        body:
+          name: postgres_master
+          partition: Common
+          database: "{{ psql_db }}"
+          username: "{{ psql_db_user }}"
+          password: "{{ psql_db_password }}"
+          send: select pg_is_in_recovery()
+          recv: f
+          recvColumn: 1
+          recvRow: 1
+        status_code:
+          - 200
+          - 409
+      register: uri_out
+      changed_when: uri_out.status == 200
+
+    - name: Create pool
+      f5networks.f5_modules.bigip_pool:
+        name: "{{ psql_pool }}"
+        monitors:
+          - postgres_master
+
+    - name: Add pool members
+      f5networks.f5_modules.bigip_pool_member:
+        pool: "{{ psql_pool }}"
+        name: "{{ item }}"
+        host: "{{ item }}"
+        port: 5432
+      loop: "{{ psql_nodes }}"
