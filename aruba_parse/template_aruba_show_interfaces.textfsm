@@ -1,0 +1,11 @@
+Value port (\d\/\d)
+Value total_bytes (\S+)
+Value total_frames (\S+)
+Value errors_rx (\S+)
+Value drops_tx (\S+)
+Value flow_ctrl (on|off)
+Value bcast_limit (\S+)
+
+Start
+  ^\s+${port}\s+${total_bytes}\s+${total_frames}\s+${errors_rx}\s+${drops_tx}\s+${flow_ctrl}\s+${bcast_limit} -> Record
+

@@ -1,0 +1,20 @@
+---
+- name: Parsing network outputs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Parse Aruba output
+      ansible.utils.cli_parse:
+        text: "{{ lookup('file', 'example_aruba.txt') }}"
+        parser:
+          name: ansible.utils.textfsm
+          template_path: template_aruba_show_interfaces.textfsm
+      register: parse_out
+
+    - name: Get total bytes of a given port
+      ansible.builtin.debug:
+        msg: OK to shutdown port {{ item.port }}
+      when: item.total_bytes | regex_replace(',', '') | int == 0
+      loop: "{{ parse_out.parsed }}"
