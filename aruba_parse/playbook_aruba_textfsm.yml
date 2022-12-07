@@ -13,7 +13,7 @@
           template_path: template_aruba_show_interfaces.textfsm
       register: parse_out
 
-    - name: Get total bytes of a given port
+    - name: Shutdown zero traffic ports
       ansible.builtin.debug:
         msg: OK to shutdown port {{ item.port }}
       when: item.total_bytes | regex_replace(',', '') | int == 0
