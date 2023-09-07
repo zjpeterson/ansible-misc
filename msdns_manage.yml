@@ -1,0 +1,52 @@
+---
+- name: Manage Microsoft DNS records
+  hosts: all
+  gather_facts: false
+  connection: winrm
+
+  collections:
+    - ansible.windows
+    - ansible.utils
+    - community.windows
+    - community.dns
+
+  vars:
+    zones:
+      - example.com
+      - 10.in-addr.arpa
+    records:
+      - name: hosta.example.com
+        ip: 10.0.0.1
+      - name: hostb.example.com
+        ip: 10.0.0.2
+
+  tasks:
+    - name: Ensure DNS Server enabled
+      ansible.windows.win_feature:
+        name: DNS
+        include_management_tools: true
+
+    - name: Manage zones
+      community.windows.win_dns_zone:
+        name: "{{ item }}"
+        type: primary
+        replication: none
+      loop: "{{ zones }}"
+
+    - name: Manage A records
+      community.windows.win_dns_record:
+        type: A
+        value: "{{ item.ip }}"
+        name: "{{ item.name | community.dns.remove_registrable_domain }}"
+        zone: "{{ item.name | community.dns.get_registrable_domain }}"
+      loop: "{{ records }}"
+
+    - name: Manage PTR records
+      vars:
+        reverse: "{{ item.ip | ansible.utils.ipaddr('revdns') }}"
+      community.windows.win_dns_record:
+        type: PTR
+        value: "{{ item.name }}."
+        name: "{{ reverse | community.dns.remove_registrable_domain }}"
+        zone: "{{ reverse | community.dns.get_registrable_domain }}"
+      loop: "{{ records }}"
