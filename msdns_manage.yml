@@ -28,7 +28,7 @@
 
     - name: Manage zones
       community.windows.win_dns_zone:
-        name: "{{ item }}"
+        name: "{{ item }}" # example.com
         type: primary
         replication: none
       loop: "{{ zones }}"
@@ -36,17 +36,17 @@
     - name: Manage A records
       community.windows.win_dns_record:
         type: A
-        value: "{{ item.ip }}"
-        name: "{{ item.name | community.dns.remove_registrable_domain }}"
-        zone: "{{ item.name | community.dns.get_registrable_domain }}"
+        value: "{{ item.ip }}" #10.0.0.1
+        name: "{{ item.name | community.dns.remove_registrable_domain }}" # hosta
+        zone: "{{ item.name | community.dns.get_registrable_domain }}" # example.com
       loop: "{{ records }}"
 
     - name: Manage PTR records
       vars:
-        reverse: "{{ item.ip | ansible.utils.ipaddr('revdns') }}"
+        reverse: "{{ item.ip | ansible.utils.ipaddr('revdns') }}" # 1.0.0.10.in-addr.arpa
       community.windows.win_dns_record:
         type: PTR
-        value: "{{ item.name }}."
-        name: "{{ reverse | community.dns.remove_registrable_domain }}"
-        zone: "{{ reverse | community.dns.get_registrable_domain }}"
+        value: "{{ item.name }}." # hosta.example.com.
+        name: "{{ reverse | community.dns.remove_registrable_domain }}" # 1.0.0
+        zone: "{{ reverse | community.dns.get_registrable_domain }}" # 10.in-addr.arpa
       loop: "{{ records }}"
