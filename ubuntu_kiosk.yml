@@ -1,0 +1,27 @@
+---
+- name: Configure Ubuntu kiosk mode
+  hosts: all
+  become: true
+
+  vars:
+    config_state: present
+
+  tasks:
+    - name: Ensure target is Ubuntu
+      ansible.builtin.assert:
+        that: ansible_distribution == 'Ubuntu'
+
+    - name: Install and configure snaps
+      community.general.snap:
+        name: 
+          - ubuntu-frame
+          - wpe-webkit-mir-kiosk
+        options:
+          - ubuntu-frame:daemon=true
+          - wpe-webkit-mir-kiosk:daemon=true
+          - wpe-webkit-mir-kiosk:url={{ kiosk_url }}
+        state: "{{ config_state }}"
+
+    - name: Connect kiosk to wayland
+      ansible.builtin.command: snap connect wpe-webkit-mir-kiosk:wayland
+      when: config_state == 'present'
