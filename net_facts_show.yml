@@ -1,0 +1,11 @@
+---
+- name: Get device information
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Show basic device info
+      ansible.builtin.debug:
+        msg: >-
+          Device is a {{ ansible_net_model }} with serial {{ ansible_net_serialnum }}
+          running {{ ansible_net_system }} {{ ansible_net_version }}

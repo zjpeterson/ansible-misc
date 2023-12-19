@@ -1,0 +1,21 @@
+---
+- name: Parse MAC address table
+  hosts: ios
+  gather_facts: false
+
+  vars:
+    show_interface: Gi0/8
+
+  tasks:
+    - name: Get table and parse
+      ansible.utils.cli_parse:
+        command: show mac address-table
+        parser:
+          name: ansible.utils.textfsm
+        set_fact: _mac_table
+
+    - name: Show an interface's entries
+      ansible.builtin.debug:
+        msg: "{{ item.DESTINATION_ADDRESS }}"
+      loop: "{{ _mac_table }}"
+      when: show_interface in item.DESTINATION_PORT

@@ -1,0 +1,27 @@
+---
+- name: Assign an access port configuration (OS agnostic)
+  hosts: all
+  gather_facts: false
+
+  vars:
+    interface: GigabitEthernet0/2
+    vlan: 20
+
+  tasks:
+    - name: Apply setting
+      ansible.netcommon.network_resource:
+        name: l2_interfaces
+        state: merged
+        config:
+          - name: "{{ interface }}"
+            mode: access
+            access:
+              vlan: "{{ vlan }}"
+
+    - name: Ensure port enabled
+      ansible.netcommon.network_resource:
+        name: interfaces
+        state: merged
+        config:
+          - name: "{{ interface }}"
+            enabled: true
