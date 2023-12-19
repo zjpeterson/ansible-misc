@@ -1,0 +1,27 @@
+---
+- name: Shutdown unused ports
+  hosts: ios
+  gather_facts: false
+
+  vars:
+    show_interface: Gi0/8
+
+  tasks:
+    - name: Get interface data and parse
+      ansible.utils.cli_parse:
+        command: show interfaces
+        parser:
+          name: ansible.utils.textfsm
+        set_fact: _interfaces
+
+    - name: Shutdown zero traffic ports
+      ansible.netcommon.network_resource:
+        name: interfaces
+        state: merged
+        config:
+          - name: "{{ item.INTERFACE }}"
+            enabled: false
+      loop: "{{ _interfaces }}"
+      when:
+        - item.INPUT_PACKETS == '0'
+        - item.OUTPUT_PACKETS == '0'
