@@ -1,0 +1,21 @@
+---
+- name: Assign an access port state
+  hosts: all
+  gather_facts: false
+
+  vars:
+    interfaces: |-
+      GigabitEthernet0/2
+      GigabitEthernet0/3
+      GigabitEthernet0/4
+    enabled: true
+
+  tasks:
+    - name: Ensure port enabled
+      ansible.netcommon.network_resource:
+        name: interfaces
+        state: merged
+        config:
+          - name: "{{ item }}"
+            enabled: "{{ enabled | bool }}"
+      loop: "{{ interfaces | split('\n') }}"
