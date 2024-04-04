@@ -11,7 +11,7 @@
     eda_user: zach # this will also be the token name
     eda_password:
     eda_verify_ssl: false
-    token_replace: false # whether or not to replace a token if it's already there
+    token_replace: true # whether or not to replace a token if it's already there
     
   module_defaults:
     ansible.builtin.uri:
