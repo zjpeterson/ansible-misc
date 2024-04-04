@@ -1,0 +1,79 @@
+---
+- name: Create a Controller token and add to EDA
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # expect environment vars set:
+    # CONTROLLER_USERNAME, CONTROLLER_PASSWORD, CONTROLLER_HOST, CONTROLLER_VERIFY_SSL
+    eda_host: myedaserver
+    eda_user: zach # this will also be the token name
+    eda_password:
+    eda_verify_ssl: false
+    token_replace: false # whether or not to replace a token if it's already there
+    
+  tasks:
+    - name: Get Controller token
+      ansible.controller.token: 
+        description: EDA Controller
+        scope: write
+
+    - name: Add token to EDA
+      ansible.builtin.uri:
+        url: https://{{ eda_host }}/api/eda/v1/users/me/awx-tokens/
+        method: POST
+        body_format: json
+        body:
+          name: "{{ eda_user }}"
+          token: "{{ controller_token.token }}"
+        url_username: "{{ eda_user }}"
+        url_password: "{{ eda_password }}"
+        validate_certs: "{{ eda_verify_ssl }}"
+        force_basic_auth: true
+        status_code:
+          - 201
+          - 409
+      register: _eda_res
+      changed_when: _eda_res.status == 201
+
+    - name: Replace existing token
+      when: token_replace and _eda_res.status == 409
+      block:
+        - name: Get existing tokens
+          ansible.builtin.uri:
+            url: https://{{ eda_host }}/api/eda/v1/users/me/awx-tokens/
+            url_username: "{{ eda_user }}"
+            url_password: "{{ eda_password }}"
+            validate_certs: "{{ eda_verify_ssl }}"
+            force_basic_auth: true
+            method: GET
+          register: _eda_tokens
+
+        - name: Delete existing token
+          vars:
+            _token: "{{ _eda_tokens.json.results | selectattr('name', 'eq', eda_user) }}"
+          ansible.builtin.uri:
+            url: https://{{ eda_host }}/api/eda/v1/users/me/awx-tokens/{{ _token.0.id }}/
+            url_username: "{{ eda_user }}"
+            url_password: "{{ eda_password }}"
+            validate_certs: "{{ eda_verify_ssl }}"
+            force_basic_auth: true
+            method: DELETE
+            status_code: 204
+          changed_when: true
+
+        - name: Add token to EDA
+          ansible.builtin.uri:
+            url: https://{{ eda_host }}/api/eda/v1/users/me/awx-tokens/
+            method: POST
+            body_format: json
+            body:
+              name: "{{ eda_user }}"
+              token: "{{ controller_token.token }}"
+            url_username: "{{ eda_user }}"
+            url_password: "{{ eda_password }}"
+            validate_certs: "{{ eda_verify_ssl }}"
+            force_basic_auth: true
+            status_code: 201
+          changed_when: true
