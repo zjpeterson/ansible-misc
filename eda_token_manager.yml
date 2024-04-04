@@ -13,6 +13,13 @@
     eda_verify_ssl: false
     token_replace: false # whether or not to replace a token if it's already there
     
+  module_defaults:
+    ansible.builtin.uri:
+      url_username: "{{ eda_user }}"
+      url_password: "{{ eda_password }}"
+      validate_certs: "{{ eda_verify_ssl }}"
+      force_basic_auth: true
+
   tasks:
     - name: Get Controller token
       ansible.controller.token: 
@@ -27,10 +34,6 @@
         body:
           name: "{{ eda_user }}"
           token: "{{ controller_token.token }}"
-        url_username: "{{ eda_user }}"
-        url_password: "{{ eda_password }}"
-        validate_certs: "{{ eda_verify_ssl }}"
-        force_basic_auth: true
         status_code:
           - 201
           - 409
@@ -43,10 +46,6 @@
         - name: Get existing tokens
           ansible.builtin.uri:
             url: https://{{ eda_host }}/api/eda/v1/users/me/awx-tokens/
-            url_username: "{{ eda_user }}"
-            url_password: "{{ eda_password }}"
-            validate_certs: "{{ eda_verify_ssl }}"
-            force_basic_auth: true
             method: GET
           register: _eda_tokens
 
@@ -55,10 +54,6 @@
             _token: "{{ _eda_tokens.json.results | selectattr('name', 'eq', eda_user) }}"
           ansible.builtin.uri:
             url: https://{{ eda_host }}/api/eda/v1/users/me/awx-tokens/{{ _token.0.id }}/
-            url_username: "{{ eda_user }}"
-            url_password: "{{ eda_password }}"
-            validate_certs: "{{ eda_verify_ssl }}"
-            force_basic_auth: true
             method: DELETE
             status_code: 204
           changed_when: true
@@ -71,9 +66,5 @@
             body:
               name: "{{ eda_user }}"
               token: "{{ controller_token.token }}"
-            url_username: "{{ eda_user }}"
-            url_password: "{{ eda_password }}"
-            validate_certs: "{{ eda_verify_ssl }}"
-            force_basic_auth: true
             status_code: 201
           changed_when: true
