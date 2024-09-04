@@ -1,0 +1,32 @@
+---
+- name: Configure NX-OS telemetry
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Enable feature
+      cisco.nxos.feature:
+        feature: telemetry
+
+    - name: Set config
+      cisco.nxos.telemetry:
+        state: replaced
+        config:
+          destination_groups:
+            - id: 100
+              destination:
+                ip: x.x.x.x
+                port: 57000
+                protocol: grpc
+                encoding: gpb
+          sensor_groups:
+            - id: 1
+              path:
+                name: sys/intf
+                depth: 1
+          subscriptions:
+            - id: 10
+              destination_group: 100
+              sensor_group:
+                id: 1
+                sample_interval: 1000
