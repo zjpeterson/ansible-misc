@@ -1,6 +1,6 @@
 ---
 - name: Restore a network backup
-  hosts: rtr1
+  hosts: routers
 
   vars:
     backup_root: /backup
