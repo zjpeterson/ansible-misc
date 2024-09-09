@@ -1,0 +1,28 @@
+---
+- name: Restore a network backup
+  hosts: rtr1
+
+  vars:
+    backup_root: /backup
+    backup_datetime: 2024-09-09-17:34:15
+    ansible_network_cli_ssh_type: paramiko
+
+  tasks:
+    - name: Pull in backup to restore
+      ansible.builtin.slurp:
+        src: "{{ backup_root }}/{{ inventory_hostname }}/{{ backup_datetime | default('latest') }}.txt"
+      register: _backup
+      delegate_to: backup-server
+
+    - name: Save restore data
+      ansible.builtin.copy:
+        content: "{{ _backup.content | b64decode }}"
+        dest: /tmp/{{ inventory_hostname }}.txt
+
+    - name: Restore the backup
+      ansible.builtin.include_role:
+        name: network.backup.restore
+      vars:
+        operation: restore
+        data_store:
+          local: /tmp
