@@ -4,7 +4,6 @@
 
   vars:
     backup_root: /backup
-    backup_datetime: 2024-09-09-17:34:15
     ansible_network_cli_ssh_type: paramiko
 
   tasks:
