@@ -1,0 +1,4 @@
+---
+collections:
+  - name: https://github.com/zjpeterson/network.backup.git
+    type: git
