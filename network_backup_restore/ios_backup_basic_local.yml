@@ -1,0 +1,34 @@
+---
+- name: Take and store a network backup
+  hosts: cisco
+
+  vars:
+    backup_root: /backup_local
+
+  tasks:
+    - name: Get date and time
+      ansible.builtin.setup:
+        gather_subset: date_time
+
+    - name: Ensure persistent detination exists
+      ansible.builtin.file:
+        path: "{{ backup_root }}/{{ inventory_hostname }}"
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+      become: true
+      delegate_to: ansible-1
+
+    - name: Take a backup
+      cisco.ios.ios_config:
+        backup: true
+        backup_options:
+          dir_path: "{{ backup_root }}/{{ inventory_hostname }}"
+          filename: "{{ ansible_date_time.date }}-{{ ansible_date_time.time }}.txt"
+
+    - name: Mark as latest
+      ansible.builtin.file:
+        state: link
+        src: "{{ backup_root }}/{{ inventory_hostname }}/{{ ansible_date_time.date }}-{{ ansible_date_time.time }}.txt"
+        path: "{{ backup_root }}/{{ inventory_hostname }}/latest.txt"
+      become: true
+      delegate_to: ansible-1

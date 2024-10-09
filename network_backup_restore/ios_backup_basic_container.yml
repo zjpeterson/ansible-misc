@@ -1,0 +1,38 @@
+---
+- name: Take and store a network backup
+  hosts: cisco
+
+  vars:
+    backup_root: /backup_container
+
+  tasks:
+    - name: Take a backup
+      cisco.ios.ios_config:
+        backup: true
+        backup_options:
+          dir_path: "/tmp"
+          filename: "{{ inventory_hostname }}"
+      register: network_backup
+
+    - name: Ensure persistent detination exists
+      ansible.builtin.file:
+        path: "{{ backup_root }}/{{ inventory_hostname }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+      become: true
+      delegate_to: ansible-1
+
+    - name: Copy to persistent destination
+      ansible.builtin.copy:
+        src: "{{ network_backup.backup_path }}"
+        dest: "{{ backup_root }}/{{ inventory_hostname }}/{{ network_backup.date }}-{{ network_backup.time }}.txt"
+        mode: "644"
+      delegate_to: ansible-1
+
+    - name: Mark as latest
+      ansible.builtin.file:
+        state: link
+        src: "{{ backup_root }}/{{ inventory_hostname }}/{{ network_backup.date }}-{{ network_backup.time }}.txt"
+        path: "{{ backup_root }}/{{ inventory_hostname }}/latest.txt"
+      become: true
+      delegate_to: ansible-1
