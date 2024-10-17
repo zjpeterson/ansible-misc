@@ -1,0 +1,21 @@
+---
+- name: Example of using tags
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Apply Role A
+      ansible.builtin.debug:
+        msg: Apple Role A
+      tags: rolea
+
+    - name: Apply Role B
+      ansible.builtin.debug:
+        msg: Apple Role B
+      tags: roleb
+
+    - name: Apply Role C
+      ansible.builtin.debug:
+        msg: Apple Role V
+      tags: rolec
