@@ -5,44 +5,17 @@
   gather_facts: false
 
   tasks:
-    - name: Get date and time
-      ansible.builtin.setup:
-        gather_subset: date_time
-      run_once: true
-      tags:
-        - rolea
-        - roleb
-        - rolec
-
     - name: Apply Role A
+      ansible.builtin.debug:
+        msg: Apply Role A
       tags: rolea
-      block:
-        - name: Apply tasks
-          ansible.builtin.debug:
-            msg: Apply Role A
-        - name: Set facts
-          ansible.builtin.set_fact:
-            rolea_last_ran: "{{ ansible_date_time.iso8601 }}"
-            cacheable: true
 
     - name: Apply Role B
+      ansible.builtin.debug:
+        msg: Apply Role B
       tags: roleb
-      block:
-        - name: Apply tasks
-          ansible.builtin.debug:
-            msg: Apply Role B
-        - name: Set facts
-          ansible.builtin.set_fact:
-            roleb_last_ran: "{{ ansible_date_time.iso8601 }}"
-            cacheable: true
 
     - name: Apply Role C
+      ansible.builtin.debug:
+        msg: Apply Role C
       tags: rolec
-      block:
-        - name: Apply tasks
-          ansible.builtin.debug:
-            msg: Apply Role C
-        - name: Set facts
-          ansible.builtin.set_fact:
-            rolec_last_ran: "{{ ansible_date_time.iso8601 }}"
-            cacheable: true
