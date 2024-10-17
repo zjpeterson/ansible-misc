@@ -9,6 +9,10 @@
       ansible.builtin.setup:
         gather_subset: date_time
       run_once: true
+      tags:
+        - rolea
+        - roleb
+        - rolec
 
     - name: Apply Role A
       tags: rolea
