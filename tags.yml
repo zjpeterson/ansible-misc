@@ -7,15 +7,15 @@
   tasks:
     - name: Apply Role A
       ansible.builtin.debug:
-        msg: Apple Role A
+        msg: Apply Role A
       tags: rolea
 
     - name: Apply Role B
       ansible.builtin.debug:
-        msg: Apple Role B
+        msg: Apply Role B
       tags: roleb
 
     - name: Apply Role C
       ansible.builtin.debug:
-        msg: Apple Role V
+        msg: Apply Role V
       tags: rolec
