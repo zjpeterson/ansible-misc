@@ -2,6 +2,7 @@
 - name: Set a letter as a statistic
   hosts: localhost
   connection: local
+  gather_facts: false
 
   tasks:
     - name: Display the inputted number
