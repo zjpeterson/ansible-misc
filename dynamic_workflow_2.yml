@@ -1,0 +1,18 @@
+---
+- name: Workflow step 2
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Do something if the letter was B
+      when: stat_letter | default('a') == 'b'
+      block:
+        - name: Blah
+          ansible.builtin.debug:
+            msg: We passed the letter check
+        - name: Blah
+          ansible.builtin.debug:
+            msg: So we can go ahead and do some things
+        - name: Blah
+          ansible.builtin.debug:
+            msg: Like display the inputted number, which was {{ input_number | default('N/A') }}

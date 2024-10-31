@@ -1,0 +1,11 @@
+---
+- name: Set a letter as a statistic
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Set variable
+      ansible.builtin.set_stats:
+        per_host: false # not supported by Controller
+        data:
+          stat_letter: "{{ ['a', 'b'] | random }}"
