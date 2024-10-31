@@ -4,6 +4,10 @@
   connection: local
 
   tasks:
+    - name: Display the inputted number
+      ansible.builtin.debug:
+        msg: The inputted number was {{ input_number | default('N/A') }}
+
     - name: Set variable
       ansible.builtin.set_stats:
         per_host: false # not supported by Controller
