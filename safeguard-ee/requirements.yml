@@ -1,5 +1,4 @@
 ---
 collections:
-  - name: https://github.com/OneIdentity/safeguard-ansible.git#/collection/oneidentity/safeguard
-    type: git
-    version: release-1.1.195978
+  - name: oneidentity.safeguardcollection
+    version: 1.1.195954
