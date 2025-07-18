@@ -1,0 +1,20 @@
+---
+- name: Make an EC2 instance
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Determine AMI
+      vars:
+        _os_to_ami:
+          rhel9: ami-0fcb2d702e65ba9c1
+          rhel10: ami-068d5d5ed1eeea07c
+          win2025: ami-07f75f93a728b971d
+          win2022: ami-0127f64815e8f6d60
+      ansible.builtin.set_fact:
+        aws_ec2_ami: "{{ _os_to_ami[aws_ec2_os] }}"
+
+    - name: Create EC2
+      ansible.builtin.include_role:
+        name: zjpeterson.labcommon.aws_ec2
