@@ -18,3 +18,20 @@
     - name: Create EC2
       ansible.builtin.include_role:
         name: zjpeterson.labcommon.aws_ec2
+
+    - name: Retrieve catalog request sysid
+      servicenow.itsm.api_info:
+        resource: sc_request
+        sysparm_query: numberSTARTSWITH{{ request }}
+      register: _result
+      when: request != ''
+
+    - name: Update a catalog work notes and state in ServiceNow
+      servicenow.itsm.api:
+        action: patch
+        resource: sc_request
+        sys_id: "{{ _result.record[0].sys_id }}"
+        data:
+          request_state: Closed Complete
+          work_notes: Ansible playbook execution completed
+      when: request != ''
