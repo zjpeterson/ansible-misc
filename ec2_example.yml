@@ -21,7 +21,7 @@
 
     - name: Retrieve catalog request sysid
       servicenow.itsm.api_info:
-        resource: sc_request
+        resource: sc_req_item
         sysparm_query: numberSTARTSWITH{{ request }}
       register: _result
       when: request != ''
@@ -29,8 +29,8 @@
     - name: Update a catalog work notes and state in ServiceNow
       servicenow.itsm.api:
         action: patch
-        resource: sc_request
-        sys_id: "{{ _result.records[0].sys_id }}"
+        resource: sc_req_item
+        sys_id: "{{ _result.record[0].sys_id }}"
         data:
           request_state: Closed Complete
           work_notes: Ansible playbook execution completed
