@@ -32,6 +32,6 @@
         resource: sc_req_item
         sys_id: "{{ _result.record[0].sys_id }}"
         data:
-          request_state: Closed Complete
+          request_state: 6
           work_notes: Ansible playbook execution completed
       when: request != ''
