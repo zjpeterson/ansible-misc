@@ -30,7 +30,7 @@
       servicenow.itsm.api:
         action: patch
         resource: sc_request
-        sys_id: "{{ _result.record[0].sys_id }}"
+        sys_id: "{{ _result.records[0].sys_id }}"
         data:
           request_state: Closed Complete
           work_notes: Ansible playbook execution completed
