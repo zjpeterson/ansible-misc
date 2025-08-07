@@ -1,6 +1,6 @@
 ---
 - name: Take and store a network backup
-  hosts: routers
+  hosts: cisco,arista
   gather_facts: false
 
   vars:
@@ -18,12 +18,12 @@
         type: full
         data_store:
           local:
-            path: backups/{{ ansible_date_time.date }}
+            path: /tmp
             filename: "{{ inventory_hostname }}.txt"
 
     - name: Ensure persistent detination exists
       ansible.builtin.file:
-        path: "{{ backup_root }}/{{ inventory_hostname }}"
+        path: "{{ backup_root }}/{{ ansible_date_time.date }}"
         state: directory
         owner: "{{ hostvars['ansible-1']['ansible_user'] }}"
       become: true
@@ -31,7 +31,7 @@
 
     - name: Copy to persistent destination
       ansible.builtin.copy:
-        src: "{{ network_backup.backup_path }}"
-        dest: "{{ backup_root }}/{{ inventory_hostname }}/{{ network_backup.date }}-{{ network_backup.time }}.txt"
+        src: /tmp/{{ inventory_hostname }}.txt
+        dest: "{{ backup_root }}/{{ ansible_date_time.date }}/{{ inventory_hostname }}.txt"
         mode: "644"
       delegate_to: ansible-1
