@@ -1,0 +1,37 @@
+---
+- name: Make an EC2 instance
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Determine AMI
+      vars:
+        _os_to_ami:
+          rhel9: ami-0fcb2d702e65ba9c1
+          rhel10: ami-068d5d5ed1eeea07c
+          win2025: ami-07f75f93a728b971d
+          win2022: ami-0127f64815e8f6d60
+      ansible.builtin.set_fact:
+        aws_ec2_ami: "{{ _os_to_ami[aws_ec2_os] }}"
+
+    - name: Create EC2
+      ansible.builtin.include_role:
+        name: zjpeterson.labcommon.aws_ec2
+
+    - name: Retrieve catalog request sysid
+      servicenow.itsm.api_info:
+        resource: sc_req_item
+        sysparm_query: numberSTARTSWITH{{ request }}
+      register: _result
+      when: request != ''
+
+    - name: Update a catalog work notes and state in ServiceNow
+      servicenow.itsm.api:
+        action: patch
+        resource: sc_req_item
+        sys_id: "{{ _result.record[0].sys_id }}"
+        data:
+          state: 3
+          work_notes: Ansible playbook execution completed
+      when: request != ''
