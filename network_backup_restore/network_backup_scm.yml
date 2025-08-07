@@ -1,5 +1,5 @@
 ---
-- name: Take and store a network backup
+- name: SCM network backup
   hosts: cisco,arista
   gather_facts: false
 
