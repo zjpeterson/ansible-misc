@@ -1,6 +1,6 @@
 ---
 - name: Take and store a network backup
-  hosts: routers
+  hosts: cisco,arista
   gather_facts: false
 
   vars:
