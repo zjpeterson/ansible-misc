@@ -1,0 +1,24 @@
+---
+- name: Take and store a network backup
+  hosts: routers
+  gather_facts: false
+
+  vars:
+    backup_repo: "https://github.com/zjpeterson/network-backups-demo"
+
+  tasks:
+    - name: Create Network Backup
+      ansible.builtin.include_role:
+        name: network.backup.backup
+      vars:
+        type: full
+        data_store:
+          scm:
+            origin:
+              user:
+                name: "Ansible"
+                email: "ansible@example.com"
+              url: "{{ backup_repo }}"
+              token: "{{ gh_token }}"
+              path: "backups"
+              filename: "{{ inventory_hostname }}"

@@ -1,39 +1,37 @@
 ---
 - name: Take and store a network backup
   hosts: routers
+  gather_facts: false
 
   vars:
     backup_root: /backup
 
   tasks:
-    - name: Take a backup
+    - name: Run local setup
+      ansible.builtin.setup:
+      delegate_to: localhost
+
+    - name: Create Network Backup
       ansible.builtin.include_role:
         name: network.backup.backup
       vars:
-        operation: backup
         type: full
         data_store:
-          local: /tmp
+          local:
+            path: backups/{{ ansible_date_time.date }}
+            filename: "{{ inventory_hostname }}.txt"
 
     - name: Ensure persistent detination exists
       ansible.builtin.file:
         path: "{{ backup_root }}/{{ inventory_hostname }}"
         state: directory
-        owner: "{{ ansible_user }}"
+        owner: "{{ hostvars['ansible-1']['ansible_user'] }}"
       become: true
-      delegate_to: backup-server
+      delegate_to: ansible-1
 
     - name: Copy to persistent destination
       ansible.builtin.copy:
         src: "{{ network_backup.backup_path }}"
         dest: "{{ backup_root }}/{{ inventory_hostname }}/{{ network_backup.date }}-{{ network_backup.time }}.txt"
         mode: "644"
-      delegate_to: backup-server
-
-    - name: Mark as latest
-      ansible.builtin.file:
-        state: link
-        src: "{{ backup_root }}/{{ inventory_hostname }}/{{ network_backup.date }}-{{ network_backup.time }}.txt"
-        path: "{{ backup_root }}/{{ inventory_hostname }}/latest.txt"
-      become: true
-      delegate_to: backup-server
+      delegate_to: ansible-1
