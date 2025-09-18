@@ -1,0 +1,50 @@
+---
+- name: Install staged IOS image
+  hosts: all
+  gather_facts: true
+  become: true
+
+  vars:
+    new_image: cat3k_caa-universalk9.16.12.13.SPA.bin
+    new_version: "{{ new_image | regex_search('(?<=\\.)(\\d+\\.\\d+\\.\\d+)') }}"
+    ansible_command_timeout: 600
+
+  tasks:
+    - name: Show current version
+      ansible.builtin.debug:
+        msg: Current version is {{ ansible_net_version }}, installing new version {{ new_version }} [{{ new_image }}]
+
+    - name: Install image
+      when: ansible_net_version != new_version
+      block:
+
+        - name: Confirm image is present
+          cisco.ios.ios_command:
+            commands: 'dir flash: | include {{ new_image }}'
+          register: _dir
+          failed_when: _dir.stdout[0] is not search(new_image)
+
+        - name: Perform install
+          cisco.ios.ios_command:
+            commands:
+              - command: "install add file flash:{{ new_image }} activate commit"
+                prompt:
+                  - 'This operation may require a reload of the system. Do you want to proceed\? \[y/n\]'
+                answer:
+                  - 'y'
+          register: _install
+          changed_when: true
+
+        - name: Wait for reboot
+          ansible.builtin.wait_for_connection:
+            delay: 60
+            timeout: 600
+
+        - name: Re-gather facts
+          cisco.ios.ios_facts:
+
+    - name: Verify that the new image is running
+      ansible.builtin.assert:
+        that: ansible_net_version == new_version
+        success_msg: Now running version {{ ansible_net_version }}
+        fail_msg: Failed to upgrade, still running {{ ansible_net_version }}

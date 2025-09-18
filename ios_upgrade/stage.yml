@@ -1,0 +1,45 @@
+---
+- name: Stage new IOS image
+  hosts: all
+  gather_facts: true
+  become: true
+
+  vars:
+    new_image: cat3k_caa-universalk9.16.12.13.SPA.bin
+    tftp_server:
+    tftp_path: images
+    ansible_command_timeout: 300
+
+  tasks:
+    - name: Show current version
+      ansible.builtin.debug:
+        msg: Current version is {{ ansible_net_version }}, staging new image {{ new_image }}
+
+    - name: Remove inactive images
+      cisco.ios.ios_command:
+        commands:
+          - command: "install remove inactive"
+            prompt:
+              - 'Do you want to remove the above files\? \[y/n\]'
+            answer:
+              - 'y'
+      register: _rm
+      changed_when: _rm.stdout[0] is search('files will be deleted')
+
+    - name: Get new image from TFTP
+      cisco.ios.ios_command:
+        commands:
+          - command: "copy tftp://{{ tftp_server }}/{{ tftp_path }}/{{ new_image }} flash:"
+            prompt:
+              - 'Destination filename [{{ new_image }}]?'
+            answer:
+              - "\r"
+      changed_when: true
+
+    - name: Verify new image
+      vars:
+        _success_msg: Digital signature successfully verified
+      cisco.ios.ios_command:
+        commands: verify flash:{{ new_image }}
+      register: _verify
+      failed_when: _verify.stdout_lines[0][1:] | reject('search', _success_msg) | length > 0
