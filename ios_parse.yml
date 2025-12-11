@@ -1,0 +1,35 @@
+---
+- name: Parse some show commands
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    commands:
+      - show ip route
+      - "dir flash:"
+
+  tasks:
+    - name: Run commands
+      cisco.ios.ios_command:
+        commands: "{{ commands }}"
+      register: _cmd
+
+    # Execution Environment with pyats and genie required
+    - name: Parse commands
+      ansible.utils.cli_parse:
+        text: "{{ item }}"
+        parser:
+          name: ansible.netcommon.pyats
+          command: "{{ commands[cmd_num] }}"
+      loop: "{{ _cmd.stdout }}"
+      loop_control:
+        index_var: cmd_num
+      register: _parsed
+
+    - name: Extract the parsed data
+      ansible.builtin.set_fact:
+        data: "{{ _parsed.results | map(attribute='parsed') }}"
+
+    - name: Show data
+      ansible.builtin.debug:
+        var: data
